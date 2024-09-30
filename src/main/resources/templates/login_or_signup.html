@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .nav-link {
+            margin-right: 1rem;
+        }
+        .nav-link:hover {
+            color: #ffc107 !important;
+        }
+        .auth-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .auth-link {
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            cursor: pointer;
+            color: blue;
+        }
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+        }
+        footer a {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Grocery</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="">Contact Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/cart">
+                        <i class="fas fa-shopping-cart"></i> Cart 
+                        <span id="cart-count" class="badge bg-secondary">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/history">History</a>
+                </li>
+                <li class="nav-item" id="login-signup-nav-item">
+                    <a class="nav-link" href="/login_or_signup">Login/SignUp</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Login/Signup Form Section -->
+<div class="auth-container">
+    <!-- Login Form -->
+    <div id="login-form" class="active-form">
+        <h3 class="text-center mt-3">Login</h3>
+        <form id="loginForm" class="needs-validation" novalidate>
+            <!-- Email/Mobile Field -->
+            <div class="mb-3">
+                <label for="loginEmailMobile" class="form-label">Email/Mobile</label>
+                <input type="text" class="form-control" id="loginEmailMobile" placeholder="Enter your email or mobile" required>
+                <div class="invalid-feedback">Please enter a valid email or mobile number.</div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label for="loginPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+                <div class="invalid-feedback">Password must be at least 6 characters long.</div>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+
+            <!-- Register Link -->
+            <a class="auth-link" id="register-link">New User? Register</a>
+        </form>
+    </div>
+
+    <!-- Signup Form (Hidden by Default) -->
+    <div id="signup-form" class="inactive-form" style="display:none;">
+        <h3 class="text-center mt-3">Signup</h3>
+        <form id="signupForm" class="needs-validation" novalidate>
+            <!-- Name Field -->
+            <div class="mb-3">
+                <label for="signupName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="signupName" placeholder="Enter your full name" required>
+                <div class="invalid-feedback">Name is required.</div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-3">
+                <label for="signupEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email" required>
+                <div class="invalid-feedback">Please enter a valid email.</div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label for="signupPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="signupPassword" placeholder="Create a password" required>
+                <div class="invalid-feedback">Password must be at least 6 characters long.</div>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-3">
+                <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="signupConfirmPassword" placeholder="Confirm your password" required>
+                <div class="invalid-feedback">Passwords do not match.</div>
+            </div>
+
+            <!-- Signup Button -->
+            <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+
+            <!-- Login Link -->
+            <a class="auth-link" id="login-link">Already have an account? Login</a>
+        </form>
+    </div>
+</div>
+
+<!-- Footer Section -->
+<footer class="text-center mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>About Grocery</h5>
+                <p>Your one-stop solution for fresh produce, household essentials, and all your grocery needs.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Shop Now</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Contact Us</h5>
+                <p>Email: support@grocerystore.com</p>
+                <p>Phone: +123 456 7890</p>
+                <p>Address: 123 Grocery Lane, Fresh City</p>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p>&copy; 2024 Grocery Store. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal for response messages -->
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="responseModalLabel">Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="responseMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const registerLink = document.getElementById('register-link');
+    const loginLink = document.getElementById('login-link');
+    const responseMessage = document.getElementById('responseMessage');
+    const responseModal = new bootstrap.Modal(document.getElementById('responseModal'));
+
+    // Show Signup Form, Hide Login Form
+    registerLink.addEventListener('click', function () {
+        loginForm.parentElement.style.display = 'none';
+        signupForm.parentElement.style.display = 'block';
+    });
+
+    // Show Login Form, Hide Signup Form
+    loginLink.addEventListener('click', function () {
+        signupForm.parentElement.style.display = 'none';
+        loginForm.parentElement.style.display = 'block';
+    });
+
+    // Validate Email
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    // Validate Mobile
+    function validateMobile(mobile) {
+        const re = /^[0-9]{10}$/;
+        return re.test(String(mobile));
+    }
+
+    // Show response message in modal
+    function showResponseMessage(message, isSuccess) {
+        responseMessage.className = 'alert alert-' + (isSuccess ? 'success' : 'danger');
+        responseMessage.innerText = message;
+        responseModal.show();
+    }
+
+    // Handle Login Form Submission
+    loginForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const emailMobile = document.getElementById('loginEmailMobile');
+        const password = document.getElementById('loginPassword');
+
+        let isValid = true;
+
+        if (!validateEmail(emailMobile.value) && !validateMobile(emailMobile.value)) {
+            emailMobile.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            emailMobile.classList.remove('is-invalid');
+            emailMobile.classList.add('is-valid');
+        }
+
+        if (password.value.length < 6) {
+            password.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            password.classList.remove('is-invalid');
+            password.classList.add('is-valid');
+        }
+
+        if (!isValid) {
+            showResponseMessage('Please correct the errors in the form.', false);
+            return;
+        }
+
+        fetch('api/customer/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: emailMobile.value, password: password.value })
+        })
+        .then(async response => {
+            if (response.status === 200) {
+                showResponseMessage('Login successful!', true);
+                loginForm.reset();
+                const inputs = loginForm.querySelectorAll('.form-control');
+                inputs.forEach(input => {
+                    input.classList.remove('is-valid', 'is-invalid');
+                });
+                localStorage.setItem('token', await response.text());
+                window.location.href = '/';
+            } else {
+                showResponseMessage(await response.text(), false);
+            }
+        })
+        .catch(error => {
+            showResponseMessage('An error occurred while logging in.', false);
+        });
+    });
+
+    // Handle Signup Form Submission
+    signupForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const name = document.getElementById('signupName');
+        const email = document.getElementById('signupEmail');
+        const password = document.getElementById('signupPassword');
+        const confirmPassword = document.getElementById('signupConfirmPassword');
+
+        let isValid = true;
+
+        if (name.value.trim() === '') {
+            name.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            name.classList.remove('is-invalid');
+            name.classList.add('is-valid');
+        }
+
+        if (!validateEmail(email.value)) {
+            email.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            email.classList.remove('is-invalid');
+            email.classList.add('is-valid');
+        }
+
+        if (password.value.length < 6) {
+            password.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            password.classList.remove('is-invalid');
+            password.classList.add('is-valid');
+        }
+
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            confirmPassword.classList.remove('is-invalid');
+            confirmPassword.classList.add('is-valid');
+        }
+
+        if (!isValid) {
+            showResponseMessage('Please correct the errors in the form.', false);
+            return;
+        }
+
+        fetch('api/customer/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name.value, email: email.value, password: password.value })
+        })
+        .then(response => {
+            if (response.status === 200) {
+                showResponseMessage('Registration successfully', true);
+                signupForm.reset();
+                const inputs = signupForm.querySelectorAll('.form-control');
+                inputs.forEach(input => {
+                    input.classList.remove('is-valid', 'is-invalid');
+                });
+                loginLink.click();
+            } else if (response.status === 409) {
+                showResponseMessage('Email already exists.', false);
+            } else {
+                showResponseMessage('An error occurred while signing up.', false);
+            }
+        })
+        .catch(error => {
+            showResponseMessage('An error occurred while signing up.', false);
+        });
+    });
+</script>
+
+</body>
+</html>

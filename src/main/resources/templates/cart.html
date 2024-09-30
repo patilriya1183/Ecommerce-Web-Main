@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .nav-link {
+            margin-right: 1rem;
+        }
+        .nav-link:hover {
+            color: #ffc107 !important;
+        }
+        .container {
+            margin-top: 20px;
+            flex: 1;
+        }
+        .card {
+            height: 100%;
+        }
+        .card .row {
+            height: 100%;
+            margin: 0;
+        }
+        .card .col-md-2 img {
+            width: 60px; /* Reduced width */
+            height: 60px; /* Reduced height */
+            object-fit: cover; /* Ensure the image covers the area without distortion */
+        }
+        .card .col-md-8, .card .col-md-2 {
+            display: flex;
+            align-items: center;
+            padding: 5px; /* Reduced padding */
+        }
+        .card .col-md-8 {
+            justify-content: space-between; /* Ensure proper spacing */
+        }
+        .card .col-md-2 {
+            justify-content: center; /* Center the delete button */
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        footer a {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        .btn-group .btn {
+            border-radius: 0;
+        }
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .quantity-display {
+            border-top: 1px solid #ced4da;
+            border-bottom: 1px solid #ced4da;
+            padding: 0.375rem 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Grocery</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">Contact Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/cart">
+                            <i class="fas fa-shopping-cart"></i> Cart 
+                            <span id="cart-count" class="badge bg-secondary">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">Orders</a>
+                    </li>
+                    <li class="nav-item" id="login-signup-nav-item">
+                        <a class="nav-link" href="/login_or_signup">Login/SignUp</a>
+                    </li>
+                    <li class="nav-item" id="account-nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user"></i> Account</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h2 class="text-center" style="margin-bottom: 20px;">Your Cart</h2> <!-- Reduced margin -->
+        <div class="row justify-content-center" id="cart-items">
+            <!-- Cart items will be dynamically inserted here -->
+        </div>
+        <div class="row justify-content-center mt-4" id="total-price-card">
+            <!-- Total price card will be dynamically inserted here -->
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/jwt-decode@3.1.2/build/jwt-decode.js"></script>
+    <script>
+        let customerId;
+        let totalPrice = 0;
+        const token = localStorage.getItem('token');
+        fetch('/api/customer', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(async response => {
+            if(await response.status === 200){
+                customerId = jwt_decode(token).customerId;
+                updateCartCount();
+                loadCartItems();
+                document.getElementById('account-nav-item').style.display = 'block';
+                document.getElementById('login-signup-nav-item').style.display = 'none';
+            } else {
+                customerId = null;
+                localStorage.removeItem('token');
+                document.getElementById('account-nav-item').style.display = 'none';
+                document.getElementById('login-signup-nav-item').style.display = 'block';
+                window.location.href = '/login_or_signup';
+            }
+        })
+        .catch(error => {
+            localStorage.removeItem('token');
+            console.error('Error:', error);
+            window.location.href = '/login_or_signup';
+        });
+        function loadCartItems() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const totalPriceCardContainer = document.getElementById('total-price-card');
+
+            // Fetch cart items from the server
+            fetch('/api/cart/products/' + customerId, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(async response => {
+                    if(await response.status === 200){
+                        const cartItems = await response.json();
+                        if (cartItems.length === 0) {
+                            cartItemsContainer.innerHTML = '<p class="text-center">Your cart is empty.</p>';
+                            return;
+                        }
+                        for(let cart of cartItems) {
+                            const itemElement = document.createElement('div');
+                            itemElement.className = 'col-12 mb-2 d-flex justify-content-center'; /* Center the item */
+                            itemElement.innerHTML = `
+                                <div class="card" style="width: 80%;"> <!-- Set a specific width -->
+                                    <div class="row g-0">
+                                        <div class="col-md-2">
+                                            <img src="data:image/jpeg;base64,${cart.image}" alt="${cart.name}" class="img-fluid rounded-start small-img">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${cart.name}</h5>
+                                                <p class="card-text">₹${cart.price} x <span id="quantity-${cart.id}">${cart.quantity}</span></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                            <div class="btn-toolbar" role="toolbar">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-secondary btn-sm" onclick="updateQuantity(${cart.id}, ${cart.pid}, -1, ${cart.price})">-</button> <!-- Updated button text -->
+                                                    <span class="btn btn-light btn-sm quantity-display" id="quantity-display-${cart.id}">${cart.quantity}</span>
+                                                    <button class="btn btn-secondary btn-sm" onclick="updateQuantity(${cart.id}, ${cart.pid}, 1, ${cart.price})">+</button> <!-- Updated button text -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            cartItemsContainer.appendChild(itemElement);
+                            totalPrice += cart.price * cart.quantity;
+                        }
+
+                        if (totalPrice > 0) {
+                            const totalPriceCard = document.createElement('div');
+                            totalPriceCard.className = 'col-12 d-flex justify-content-center'; /* Center the total price card */
+                            totalPriceCard.innerHTML = `
+                                <div class="card" style="width: 80%;"> <!-- Set a specific width -->
+                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">Total Price: ₹<span id="total-price">${totalPrice}</span></h5>
+                                        <button class="btn btn-primary btn-lg" id="buy-now-button">Buy Now</button>
+                                    </div>
+                                </div>
+                            `;
+                            totalPriceCardContainer.appendChild(totalPriceCard);
+
+                            document.getElementById('buy-now-button').addEventListener('click', function() {
+                                window.location.href = '/buy';
+                            });
+                        }
+                    } else {
+                        cartItemsContainer.innerHTML = '<p class="text-center">Your cart is empty.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching cart items:', error);
+                    cartItemsContainer.innerHTML = '<p class="text-center text-danger">Failed to load cart items.</p>';
+                });
+        }
+
+        function updateCartCount() {
+            const cartCountElement = document.getElementById('cart-count');
+            fetch('/api/cart/count/' + customerId, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`  
+                }
+            })
+            .then(async response => {
+                if(await response.status === 200){
+                    cartCountElement.textContent = await response.text();
+                }
+                else{
+                    cartCountElement.textContent = "0";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                cartCountElement.textContent = "0";
+            });
+        }
+
+        function updateQuantity(cartId, productId, change, price) {
+            const form = new FormData();
+            let method = null;
+            form.append("customerId", customerId);
+            form.append("productId", productId);
+            if(change == 1){
+                method = "add";
+            } else{
+                method = "remove";
+            }
+            fetch('/api/cart/'+method, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: form
+            })
+            .then(async response => {
+                if(await response.status === 200) {
+                    const quantityElement = document.getElementById(`quantity-${cartId}`);
+                    const quantityDisplayElement = document.getElementById(`quantity-display-${cartId}`);
+                    const newQuantity = parseInt(quantityElement.innerText) + change;
+                    if (newQuantity > 0) {
+                        quantityElement.innerText = newQuantity;
+                        quantityDisplayElement.innerText = newQuantity;
+                        totalPrice += change * price; // Update total price
+                        document.getElementById("total-price").innerText = totalPrice; // Reflect the updated total price
+                    } else {
+                        document.getElementById('cart-items').removeChild(quantityElement.closest('.col-12'));
+                        totalPrice -= quantityElement.innerText * price; // Subtract the total price of removed item
+                        document.getElementById("total-price").innerText = totalPrice; // Reflect the updated total price
+                    }
+                    updateCartCount()
+
+                    // Check if cart is empty and remove total price card if it is
+                    if (document.getElementById('cart-items').children.length === 0) {
+                        document.getElementById('total-price-card').innerHTML = '';
+                        document.getElementById('cart-items').innerHTML = '<p class="text-center">Your cart is empty.</p>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating quantity:', error);
+            });
+        }
+    </script>
+    <footer class="text-center mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About Grocery</h5>
+                    <p>Your one-stop solution for fresh produce, household essentials, and all your grocery needs.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Shop Now</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <p>Email: support@grocerystore.com</p>
+                    <p>Phone: +123 456 7890</p>
+                    <p>Address: 123 Grocery Lane, Fresh City</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <p>&copy; 2024 Grocery Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
